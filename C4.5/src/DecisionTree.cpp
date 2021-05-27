@@ -25,6 +25,8 @@ DecisionTree::DecisionTree(const DecisionTree& other){
     this->statistics = other.statistics;
     this->predicate = other.predicate;
     this->parent = other.parent;
+    this->impurity = other.impurity;
+    this->misclassificationRate = other.misclassificationRate;
 
     for(DecisionTree* child : other.children){
         if(child != nullptr){
@@ -46,6 +48,8 @@ DecisionTree& DecisionTree::operator=(const DecisionTree& other){
     this->statistics = other.statistics;
     this->predicate = other.predicate;
     this->parent = other.parent;
+    this->impurity = other.impurity;
+    this->misclassificationRate = other.misclassificationRate;
 
     for(DecisionTree* child : other.children){
         if(child != nullptr){
@@ -57,10 +61,6 @@ DecisionTree& DecisionTree::operator=(const DecisionTree& other){
 
     return *this;
 
-}
-void DecisionTree::printDataSet(){
-    this->dataset->printFeatures();
-    this->dataset->printEntries();
 }
 
 std::vector<DataSet*> DecisionTree::partitionDataSet(std::string feature){
@@ -262,6 +262,7 @@ std::string DecisionTree::getMajorityTargetFeature(){
         majority = this->statistics.getMode(this->dataset, this->targetFeature, 0, this->dataset->getEntryCount());
     else
         majority = std::to_string(statistics.getMean(this->dataset, targetFeature));
+
     return majority;
 }
 
@@ -281,43 +282,26 @@ void DecisionTree::grow(){
         if(this->parent == nullptr){
             return;
         }
-
-        // Make a leaf node be equal to the majority target feature of the parent node.
-        DecisionTree* leaf = new DecisionTree(dataset, targetFeature, this);
-        std::string value;
-
-        value = this->getMajorityTargetFeature();
-
-        leaf->predicate = *(new Predicate(targetFeature, value, Predicate::Equals));
-        this->children.push_back(leaf);
+        label = this->getMajorityTargetFeature();;
         return;
     }
 
     if(!this->dataset->isFeatureCategorical(targetFeature)){
         // Stop when the pruning condition is met.
         if(this->isPrunable()){
-            DecisionTree* leaf = new DecisionTree(dataset, targetFeature, this);
-            leaf->predicate = *(new Predicate(targetFeature, std::to_string(statistics.getMean(dataset, targetFeature)), Predicate::Equals));
-            this->children.push_back(leaf);
+            label = statistics.getMean(dataset, targetFeature);
             return;
         }
     }
     else if(this->isTargetUniform()){
         // Make the predicate be equal to the value of the target feature.
-        DecisionTree* leaf = new DecisionTree(dataset, targetFeature, this);
-        leaf->predicate = *(new Predicate(targetFeature, this->dataset->getEntryFeatureAt(0, targetFeature), Predicate::Equals));
-        this->children.push_back(leaf);
+        label = dataset->getEntryFeatureAt(0, targetFeature);
         return;
     }
 
     if(this->isDataSetFeatureless()){
         // Make the predicate be equal to the value of this node's majority feature
-        DecisionTree* leaf = new DecisionTree(dataset, targetFeature, this);
-
-        std::string value = this->getMajorityTargetFeature();
-
-        leaf->predicate = *(new Predicate(targetFeature, value, Predicate::Equals));
-        this->children.push_back(leaf);
+        label = this->getMajorityTargetFeature();
         return;
     }
 
@@ -379,58 +363,8 @@ void DecisionTree::grow(DataSet* training){
     this->grow();
 }
 
-void DecisionTree::printFullTree(){
-    if(this->isTerminal()){
-        for(DecisionTree* child: children){
-            if(child != nullptr)
-                child->printFullTree();
-        }
-
-        // Print the exception
-        if(this->predicate.getFeature() != targetFeature){
-            std::cout<<"EXCEPTION: "<<this->targetFeature<<"=="<<this->getMajorityTargetFeature()<<" ";
-            DecisionTree* curr = this;
-            while(curr != nullptr){
-                curr->predicate.print();
-                curr = curr->parent;
-            }
-
-            std::cout<<"\n";
-        }
-    }
-    else{
-        DecisionTree* curr = this->parent;
-        this->predicate.print();
-        while(curr != nullptr){
-            curr->predicate.print();
-            curr = curr->parent;
-        }
-
-        std::cout<<"\n";
-    }
-}
-
-void DecisionTree::printTree(){
-    if(!this->isTerminal()){
-        for(DecisionTree* child: children){
-            if(child != nullptr)
-                child->printTree();
-        }
-    }
-    else{
-        DecisionTree* curr = this->parent;
-        this->predicate.print();
-        while(curr != nullptr){
-            curr->predicate.print();
-            curr = curr->parent;
-        }
-
-        std::cout<<"\n";
-    }
-}
-
 std::string DecisionTree::evaluate(std::map<std::string, std::string> query){
-    if(this->children.size() > 0){
+    if(!this->isTerminal()){
         for(DecisionTree* child : children){
             if(child == nullptr)
                 continue;
@@ -446,7 +380,7 @@ std::string DecisionTree::evaluate(std::map<std::string, std::string> query){
 
         return this->getMajorityTargetFeature();
     }
-    return this->predicate.getValue();
+    return this->label;;
 }
 
 std::map<std::string, std::string>* DecisionTree::makeTestData(int index, DataSet* d){
@@ -532,14 +466,50 @@ int DecisionTree::getLeaves(){
     return sum ;
 }
 
-int DecisionTree::getWeight(){
-    return dataset->getEntryCount();
-}
-
 bool DecisionTree::isTerminal(){
-    return predicate.getFeature() == targetFeature;
+    return label != "\b";
 }
 
 std::string DecisionTree::getTargetFeature(){
     return this->targetFeature;
+}
+
+double DecisionTree::getImpurity(){
+    if(impurity >= 0)
+        return impurity;
+
+    // Calculate impurity using a specific strategy specified in the statistics manager. In this case we use Entropy, but we can use whatever
+    // startegy we wish.
+
+    if(dataset->isFeatureCategorical(targetFeature))
+        impurity = statistics.getEntropy(dataset, targetFeature);
+    else{
+        impurity = statistics.getVariance(dataset, targetFeature);
+    }
+
+    return impurity;
+}
+
+double DecisionTree::getMisclassificationRate(){
+    return misclassificationRate;
+}
+
+void DecisionTree::updateMisclassificationRate(DataSet* d){
+    this->misclassificationRate = this->test(d);
+}
+
+DataSet* DecisionTree::getDataSet(){
+    return this->dataset;
+}
+
+void DecisionTree::setPredicate(Predicate* p){
+    this->predicate = *(new Predicate(*p));
+}
+
+std::string DecisionTree::getLabel(){
+    return label;
+}
+
+Predicate DecisionTree::getPredicate(){
+    return this->predicate;
 }

@@ -3,6 +3,7 @@
 #include "DecisionTree.h"
 #include "StatisticsManager.h"
 #include "Validator.h"
+#include "Predicate.h"
 
 Pruner::Pruner()
 {
@@ -40,12 +41,7 @@ void Pruner::reducedErrorPrune(DataSet* testData, DecisionTree* root, DecisionTr
         if(current->getParent() == nullptr)
             return;
 
-        for(int i = 0; i <  (int) current->getParent()->getChildren().size(); i++){
-            if(current->getParent()->getChildren()[i] == current){
-                current->getParent()->removeChild(i);
-                break;
-            }
-        }
+        current->getParent()->removeChild(current);
 
         // Delete the subtreee
         delete current;
@@ -69,9 +65,12 @@ void generateTreeSet(DecisionTree* root, DecisionTree* current, std::vector<Deci
         DecisionTree* child = current->getChildren()[i];
         generateTreeSet(root, child, trees, rem);
 
+        if(child->isTerminal())
+            continue;
 
         // Generate the subtree
-        root->removeChild(child);
+        current->removeChild(child);
+
         DecisionTree* subtree = new DecisionTree(*root);
         DecisionTree* childcopy = new DecisionTree(*child);
 
@@ -94,9 +93,19 @@ DecisionTree* getRoot(DecisionTree* root){
     return subtree;
 }
 
+void updateMisclassificationError(DecisionTree* root, DataSet* valData){
+    for(DecisionTree* child : root->getChildren()){
+        child->updateMisclassificationRate(valData);
+        updateMisclassificationError(child, valData);
+    }
+}
 
 DecisionTree* Pruner::costComplexityPrune(DataSet* testData, DataSet* validationData, DecisionTree* root){
+    // Generate the list of misclassification errors
+    std::vector<DecisionTree*> *T = new std::vector<DecisionTree*>();
 
+    Validator * v= new Validator();
+    updateMisclassificationError(root,validationData);
 
     return root;
 }

@@ -34,8 +34,10 @@ class DecisionTree : public Model
         bool isDataSetFeatureless();
         bool isPrunable();
 
-
         std::string majority = "\b";
+        std::string label = "\b";
+        double impurity = -1;
+        double misclassificationRate = -1;
 
     public:
         DecisionTree(DataSet* dataset, std::string targetFeature, DecisionTree* parent = nullptr);
@@ -43,28 +45,36 @@ class DecisionTree : public Model
         DecisionTree(const DecisionTree& other);
         DecisionTree& operator= (const DecisionTree& other);
 
-        void printDataSet();
         void grow();
         void grow(DataSet* training) override;
 
-        void printTree();
-        void printFullTree();
+        // Evaluation
         std::string evaluate(std::map<std::string, std::string> query);
         std::string getMajorityTargetFeature();
-
         double test(DataSet *testdata) override;
 
-        std::vector<DecisionTree*> getChildren();
-        DecisionTree* getParent();
-
+        // Child addition and removal
         void addChild(int i, DecisionTree* child);
         void removeChild(int index);
         void removeChild(DecisionTree* child);
 
+
+        // Getters and Setters
         int getWeight();
         int getLeaves();
+        DataSet* getDataSet();
         bool isTerminal();
         std::string getTargetFeature();
+
+        double getImpurity();
+        double getMisclassificationRate();
+        Predicate getPredicate();
+        std::string getLabel();
+        void updateMisclassificationRate(DataSet* d);
+        void setPredicate(Predicate* p);
+
+        std::vector<DecisionTree*> getChildren();
+        DecisionTree* getParent();
 };
 
 #endif // DECISIONTREE_H

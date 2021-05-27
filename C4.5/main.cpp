@@ -5,13 +5,11 @@
 #include <Predicate.h>
 #include <Validator.h>
 #include <Pruner.h>
+#include <Printer.h>
 
 // TIme taken: approx. 18 hrs
 // TO-DO:
-// Implement Model Ensembles
-// Optimization:
-
-// Re-Implement
+// Re-Implement Cost complexity pruning
 
 
 void addFeatures(DataSet* d){
@@ -47,6 +45,7 @@ void constructDataSet(DataSet* d, std::string filename){
 int main()
 {
     Validator* validator = new Validator();
+    Printer* printer = new Printer();
     DataSet* d = new DataSet();
     DataSet* t = new DataSet();
     DataSet* v = new DataSet();
@@ -62,7 +61,7 @@ int main()
 
     DecisionTree* decisionTree = new DecisionTree(d, "DECISION");
     decisionTree->grow();
-    decisionTree->printTree();
+    printer->printTree(decisionTree);
 
     std::cout<<"\nError rate: "<<decisionTree->test(v)<<"\n";
     std::cout<<"Test Samples: "<<v->getEntryCount()<<"\n";
@@ -70,8 +69,8 @@ int main()
     std::cout<<"Pruning Samples: "<<t->getEntryCount()<<"\n";
 
     std::cout<<"\n=====PRUNED=====\n";
-    decisionTree = pruner->costComplexityPrune(t, d, decisionTree);
-    decisionTree->printTree();
+    decisionTree = pruner->reducedErrorPrune(t, decisionTree);
+    printer->printFullTree(decisionTree, decisionTree);
 
     std::cout<<"\nError rate: "<<decisionTree->test(v)<<"\n";
     std::cout<<"Test Samples: "<<v->getEntryCount()<<"\n";
