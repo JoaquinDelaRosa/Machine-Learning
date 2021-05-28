@@ -1,60 +1,23 @@
-#include <iostream>
-#include <DataSet.h>
 #include <bits/stdc++.h>
+#include <DataSet.h>
+
 #include <DecisionTree.h>
-#include <Predicate.h>
 #include <Validator.h>
 #include <Pruner.h>
 #include <Printer.h>
+#include <DataParser.h>
 
 // TIme taken: approx. 24 hrs
 
-void addFeatures(DataSet* d){
-    d->addFeature("CT", DataSet::Categorical);
-    d->addFeature("ST", DataSet::Categorical);
-    d->addFeature("G", DataSet::Categorical);
-    d->addFeature("DECISION", DataSet::Categorical);
-}
-
-void constructDataSet(DataSet* d, std::string filename){
-    std::ifstream trainingData;
-    trainingData.open(filename);
-    if(trainingData.is_open()){
-        std::string temp;
-        while(std::getline(trainingData, temp)){
-            // Delimit data.
-            std::istringstream iss(temp);
-            std::string token;
-            std::vector<std::string> entry;
-            while(std::getline(iss, token, '\t')){
-                entry.push_back(token);
-            }
-            d->addEntry(entry);
-        }
-
-        trainingData.close();
-    }
-    else{
-        std::cout<<"FILE NOT FOUND.";
-    }
-
-}
 int main()
 {
     Validator* validator = new Validator();
     Printer* printer = new Printer();
-    DataSet* d = new DataSet();
-    DataSet* t = new DataSet();
-    DataSet* v = new DataSet();
+    DataParser* parser = new DataParser();
+    DataSet* d = parser->parseData("trainingdata.txt", "features.txt");
+    DataSet* t = parser->parseData("testdata.txt", "features.txt");
+    DataSet* v = parser->parseData("validationdata.txt", "features.txt");
     Pruner* pruner = new Pruner();
-
-    addFeatures(d);
-    addFeatures(t);
-    addFeatures(v);
-    constructDataSet(d, "trainingdata.txt");
-    constructDataSet(t, "testdata.txt");
-    constructDataSet(v, "validationdata.txt");
-    // Begin processing the data here.
 
     DecisionTree* decisionTree = new DecisionTree(d, "DECISION");
     decisionTree->grow();
