@@ -75,6 +75,9 @@ class DecisionTree : public Model
 
         std::vector<DecisionTree*> getChildren();
         DecisionTree* getParent();
+        DecisionTree* getRoot();
+
+        void makeTerminal();
 };
 
 #endif // DECISIONTREE_H

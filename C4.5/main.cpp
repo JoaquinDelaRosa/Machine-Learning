@@ -7,10 +7,7 @@
 #include <Pruner.h>
 #include <Printer.h>
 
-// TIme taken: approx. 18 hrs
-// TO-DO:
-// Re-Implement Cost complexity pruning
-
+// TIme taken: approx. 24 hrs
 
 void addFeatures(DataSet* d){
     d->addFeature("CT", DataSet::Categorical);
@@ -69,8 +66,8 @@ int main()
     std::cout<<"Pruning Samples: "<<t->getEntryCount()<<"\n";
 
     std::cout<<"\n=====PRUNED=====\n";
-    decisionTree = pruner->reducedErrorPrune(t, decisionTree);
-    printer->printFullTree(decisionTree, decisionTree);
+    decisionTree = pruner->costComplexityPrune(t, decisionTree);
+    printer->printTree(decisionTree);
 
     std::cout<<"\nError rate: "<<decisionTree->test(v)<<"\n";
     std::cout<<"Test Samples: "<<v->getEntryCount()<<"\n";

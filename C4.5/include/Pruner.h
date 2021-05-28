@@ -13,8 +13,7 @@ class Pruner
     public:
         Pruner();
         DecisionTree* reducedErrorPrune(DataSet* testData, DecisionTree* root);
-        DecisionTree* costComplexityPrune(DataSet* testData, DataSet* validationData, DecisionTree* root);
-        DecisionTree* costComplexityPrune(DataSet* testData, DecisionTree* root, double alpha);
+        DecisionTree* costComplexityPrune(DataSet* testData, DecisionTree* root);
 };
 
 #endif // PRUNER_H

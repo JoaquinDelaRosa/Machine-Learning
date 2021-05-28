@@ -27,6 +27,7 @@ DecisionTree::DecisionTree(const DecisionTree& other){
     this->parent = other.parent;
     this->impurity = other.impurity;
     this->misclassificationRate = other.misclassificationRate;
+    this->label = other.label;
 
     for(DecisionTree* child : other.children){
         if(child != nullptr){
@@ -50,6 +51,7 @@ DecisionTree& DecisionTree::operator=(const DecisionTree& other){
     this->parent = other.parent;
     this->impurity = other.impurity;
     this->misclassificationRate = other.misclassificationRate;
+    this->label = other.label;
 
     for(DecisionTree* child : other.children){
         if(child != nullptr){
@@ -259,7 +261,7 @@ std::string DecisionTree::getMajorityTargetFeature(){
         return majority;
 
     if(dataset->isFeatureCategorical(targetFeature))
-        majority = this->statistics.getMode(this->dataset, this->targetFeature, 0, this->dataset->getEntryCount());
+        majority = this->statistics.getMode(this->dataset, this->targetFeature);
     else
         majority = std::to_string(statistics.getMean(this->dataset, targetFeature));
 
@@ -452,15 +454,12 @@ void DecisionTree::removeChild(DecisionTree* child){
 }
 
 int DecisionTree::getLeaves(){
-    if(children.size() <= 1){
-        if(this->parent == nullptr)
-            return 1;
-        return children.size();
-    }
+    if(this->isTerminal())
+        return 1;
 
     int sum = 0;
     for(DecisionTree* child : children){
-        sum += child->getLeaves();
+        sum += child->getLeaves() + 1;
     }
 
     return sum ;
@@ -491,11 +490,17 @@ double DecisionTree::getImpurity(){
 }
 
 double DecisionTree::getMisclassificationRate(){
-    return misclassificationRate;
-}
+    if (this->misclassificationRate >= 0)
+        return this->misclassificationRate;
 
-void DecisionTree::updateMisclassificationRate(DataSet* d){
-    this->misclassificationRate = this->test(d);
+    // Let r be the misclassification estimate (equal to 1 - p(label))
+    double r = 1 - ((1.0 * statistics.getFrequency(dataset, targetFeature, this->getMajorityTargetFeature())) / this->dataset->getEntryCount());
+    // Let p be the posterior probability estimate. In this case we use N(t) / N, for N(t) being the size of this node;
+    DecisionTree* root = this->getRoot();
+    double p = (1.0 * this->dataset->getEntryCount()) / root->dataset->getEntryCount();
+
+    this->misclassificationRate = r * p;
+    return this->misclassificationRate;
 }
 
 DataSet* DecisionTree::getDataSet(){
@@ -512,4 +517,20 @@ std::string DecisionTree::getLabel(){
 
 Predicate DecisionTree::getPredicate(){
     return this->predicate;
+}
+
+DecisionTree* DecisionTree::getRoot(){
+    DecisionTree* curr = this;
+    while(curr->parent != nullptr)
+        curr = curr->parent;
+
+    return curr;
+}
+
+void DecisionTree::makeTerminal(){
+    this->label = this->getMajorityTargetFeature();
+    // Prune the children
+    for(DecisionTree* child: children){
+        this->removeChild(child);
+    }
 }

@@ -9,13 +9,16 @@ class StatisticsManager
         StatisticsManager();
 
 
-        std::string getMode(DataSet* d, std::string feature, int start, int finish);
+        std::string getMode(DataSet* d, std::string feature);
         double getEntropy(DataSet* d, std::string target);
         double getMean(DataSet* d, std::string feature);
         double getVariance(DataSet* d, std::string feature);
 
         double getRE(double error, double alpha, int N);
         double getERFInv(double confidence);
+
+
+        int getFrequency(DataSet* d, std::string feature, std::string label);
 
 };
 

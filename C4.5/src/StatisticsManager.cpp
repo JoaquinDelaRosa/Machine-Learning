@@ -11,10 +11,10 @@ StatisticsManager::StatisticsManager()
     //ctor
 }
 
-std::string StatisticsManager::getMode(DataSet* d, std::string feature, int start, int finish){
+std::string StatisticsManager::getMode(DataSet* d, std::string feature){
     std::map<std::string, int> counters;
 
-    for(int i = start; i < finish && i < d->getEntryCount(); i++){
+    for(int i = 0; i < d->getEntryCount(); i++){
         std::string f = d->getEntryFeatureAt(i, feature);
         std::map<std::string, int>::iterator it = counters.find(f);
         if(it != counters.end())
@@ -35,6 +35,16 @@ std::string StatisticsManager::getMode(DataSet* d, std::string feature, int star
     }
 
     return mode;
+}
+
+int StatisticsManager::getFrequency(DataSet* d, std::string feature, std::string label){
+    int ctr = 0;
+    for(int i = 0; i < d->getEntryCount(); i++){
+        if(d->getEntryFeatureAt(i, feature) == label)
+            ctr++;
+    }
+
+    return ctr;
 }
 
 double StatisticsManager::getEntropy(DataSet* d, std::string target){
