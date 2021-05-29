@@ -1,5 +1,5 @@
-#include "Model.h"
-#include "DataSet.h"
+#include "Outputs/Model.h"
+#include "Dataset/DataSet.h"
 Model::Model()
 {
     //ctor

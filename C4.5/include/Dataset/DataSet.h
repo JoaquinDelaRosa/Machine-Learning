@@ -41,6 +41,13 @@ class DataSet
 
         // Shuffling
         void shuffle();
+
+        // Partitioning
+        std::vector<DataSet*> partitionDataSet(std::string feature);
+        std::vector<DataSet*> partitionDataSet(int index);
+
+        // Query map generation
+        std::map<std::string, std::string>* makeQuery(int index);
 };
 
 #endif // DATASET_H

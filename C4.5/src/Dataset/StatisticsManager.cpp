@@ -1,5 +1,5 @@
-#include "StatisticsManager.h"
-#include "DataSet.h"
+#include "Dataset/StatisticsManager.h"
+#include "Dataset/DataSet.h"
 #include "bits/stdc++.h"
 
 #define SQRT1_2 sqrt(1.0/2)

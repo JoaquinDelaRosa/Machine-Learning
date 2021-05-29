@@ -1,6 +1,6 @@
 #ifndef STATISTICSMANAGER_H
 #define STATISTICSMANAGER_H
-#include <DataSet.h>
+#include <Dataset/DataSet.h>
 #include <bits/stdc++.h>
 
 class StatisticsManager

@@ -1,6 +1,6 @@
-#include "Validator.h"
-#include "DataSet.h"
-#include "Model.h"
+#include "Outputs/Validator.h"
+#include "Dataset/DataSet.h"
+#include "Outputs/Model.h"
 
 Validator::Validator()
 {

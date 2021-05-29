@@ -1,6 +1,6 @@
 #ifndef MODEL_H
 #define MODEL_H
-#include <DataSet.h>
+#include <Dataset/DataSet.h>
 
 class Model
 {

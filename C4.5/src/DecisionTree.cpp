@@ -1,8 +1,8 @@
 #include "DecisionTree.h"
-#include "StatisticsManager.h"
+#include "Dataset/StatisticsManager.h"
 #include "bits/stdc++.h"
 #include "Predicate.h"
-#include "Model.h"
+#include "Outputs/Model.h"
 
 DecisionTree::DecisionTree(DataSet* dataset, std::string targetFeature, DecisionTree* parent) : Model(){
     this->dataset = dataset;
@@ -65,51 +65,11 @@ DecisionTree& DecisionTree::operator=(const DecisionTree& other){
 
 }
 
-std::vector<DataSet*> DecisionTree::partitionDataSet(std::string feature){
-    std::vector<DataSet*> subsets;
-    std::map<std::string, int> levels;
-    int levelctr = 0;
-
-    for(int i = 0; i < dataset->getEntryCount(); i++){
-        std::string f = this->dataset->getEntryFeatureAt(i, feature);
-
-        auto itr = levels.find(f);
-        // If a new label was not found, add it to the existing label
-        if(itr != levels.end()){
-            subsets[itr->second]->addEntry(this->dataset->getEntryAt(i));
-        }
-
-        // Otherwise make a new vector for that label.
-        else{
-            levels.emplace(std::pair<std::string, int>(f, levelctr));
-            subsets.push_back(new DataSet(*this->dataset, true));
-            subsets[levelctr]->addEntry(this->dataset->getEntryAt(i));
-            levelctr++;
-        }
-    }
-    return subsets;
-}
-
-std::vector<DataSet*> DecisionTree::partitionDataSet(int index){
-    std::vector<DataSet*> subsets;
-    subsets.push_back(new DataSet(*this->dataset, true));
-    subsets.push_back(new DataSet(*this->dataset, true));
-
-    for(int i = 0; i < index; i++)
-        subsets[0]->addEntry(dataset->getEntryAt(i));
-
-    for(int i = index; i < dataset->getEntryCount(); i++)
-        subsets[1]->addEntry(dataset->getEntryAt(i));
-
-
-    return subsets;
-}
-
 std::pair<double, int> DecisionTree::getInformationGain(std::string feature, double h){
     double ig = 0;
     int best = -1;
     if(dataset->isFeatureCategorical(feature)){
-        std::vector<DataSet*> p = this->partitionDataSet(feature);
+        std::vector<DataSet*> p = this->dataset->partitionDataSet(feature);
 
         double rem = 0;
         for(DataSet* part : p ){
@@ -130,7 +90,7 @@ std::pair<double, int> DecisionTree::getInformationGain(std::string feature, dou
             if(dataset->getEntryFeatureAt(i, targetFeature) != dataset->getEntryFeatureAt(i - 1, targetFeature)){
                 //Select i
                 rem = 0;
-                std::vector<DataSet*> p = this->partitionDataSet(i);
+                std::vector<DataSet*> p = this->dataset->partitionDataSet(i);
 
                 rem += ((1.0 * i ) / (1.0 *ct)) * statistics.getEntropy((p[0]), this->targetFeature) ;
                 rem += ((1.0 * (ct - i )) / (1.0 *ct)) * statistics.getEntropy((p[1]), this->targetFeature) ;
@@ -154,7 +114,7 @@ std::pair<double, int> DecisionTree::getWeightedVariance(std::string feature){
     int best = -1;
 
     if(dataset->isFeatureCategorical(feature)){
-        std::vector<DataSet*> p = this->partitionDataSet(feature);
+        std::vector<DataSet*> p = this->dataset->partitionDataSet(feature);
         for(DataSet* part: p){
             double weight = (1.0* part->getEntryCount()) / (1.0 * dataset->getEntryCount());
             double temp = statistics.getVariance(part, targetFeature);
@@ -174,7 +134,7 @@ std::pair<double, int> DecisionTree::getWeightedVariance(std::string feature){
             if(dataset->getEntryFeatureAt(i, targetFeature) != dataset->getEntryFeatureAt(i - 1, targetFeature)){
                 //Select i
                 rem = 0;
-                std::vector<DataSet*> p = this->partitionDataSet(i);
+                std::vector<DataSet*> p = this->dataset->partitionDataSet(i);
 
                 rem += ((1.0 * i) / (1.0 *ct)) * statistics.getVariance((p[0]), this->targetFeature) ;
                 rem += ((1.0 * (ct - i)) / (1.0 *ct)) * statistics.getVariance((p[1]), this->targetFeature) ;
@@ -319,10 +279,10 @@ void DecisionTree::grow(){
 
 
     if(dataset->isFeatureCategorical(best.first))
-        p = this->partitionDataSet(best.first);
+        p = this->dataset->partitionDataSet(best.first);
     else{
         dataset->sortByFeature(best.first);
-        p = this->partitionDataSet(best.second);
+        p = this->dataset->partitionDataSet(best.second);
     }
 
 
@@ -385,25 +345,13 @@ std::string DecisionTree::evaluate(std::map<std::string, std::string> query){
     return this->label;;
 }
 
-std::map<std::string, std::string>* DecisionTree::makeTestData(int index, DataSet* d){
-    std::map<std::string, std::string> *query = new std::map<std::string, std::string>();
-    for(int i = 0; i < d->getFeatureCount(); i++){
-        std::pair<std::string, int> feature = d->getFeatureAt(i);
-        if(feature.first != this->targetFeature){
-            query->emplace(feature.first, d->getEntryFeatureAt(index, i));
-        }
-    }
-
-    return query;
-}
-
 double DecisionTree::test(DataSet* testData){
     // Use an evaluation function to determine whether or not to prune a subtree
     int wrong = 0;
     double error = 0;
     int total = testData->getEntryCount();
     for(int i = 0; i < total; i++){
-        std::map<std::string, std::string>* query = this->makeTestData(i, testData);
+        std::map<std::string, std::string>* query = this->dataset->makeQuery(i);
         std::string evaluation = this->evaluate(*query);
         std::string testValue = testData->getEntryFeatureAt(i, targetFeature);
         // For categorical data

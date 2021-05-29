@@ -1,4 +1,4 @@
-#include "DataSet.h"
+#include "Dataset/DataSet.h"
 #include<bits/stdc++.h>
 
 DataSet::DataSet()
@@ -150,4 +150,54 @@ void DataSet::shuffle(){
     std::default_random_engine e(seed);
 
     std::shuffle(this->entries.begin(), this->entries.end(), e);
+}
+
+std::vector<DataSet*> DataSet::partitionDataSet(std::string feature){
+    std::vector<DataSet*> subsets;
+    std::map<std::string, int> levels;
+    int levelctr = 0;
+
+    for(int i = 0; i < this->getEntryCount(); i++){
+        std::string f = this->getEntryFeatureAt(i, feature);
+
+        auto itr = levels.find(f);
+        // If a new label was not found, add it to the existing label
+        if(itr != levels.end()){
+            subsets[itr->second]->addEntry(this->getEntryAt(i));
+        }
+
+        // Otherwise make a new vector for that label.
+        else{
+            levels.emplace(std::pair<std::string, int>(f, levelctr));
+            subsets.push_back(new DataSet(*this, true));
+            subsets[levelctr]->addEntry(this->getEntryAt(i));
+            levelctr++;
+        }
+    }
+    return subsets;
+}
+
+std::vector<DataSet*> DataSet::partitionDataSet(int index){
+    std::vector<DataSet*> subsets;
+    subsets.push_back(new DataSet(*this, true));
+    subsets.push_back(new DataSet(*this, true));
+
+    for(int i = 0; i < index; i++)
+        subsets[0]->addEntry(this->getEntryAt(i));
+
+    for(int i = index; i < this->getEntryCount(); i++)
+        subsets[1]->addEntry(this->getEntryAt(i));
+
+
+    return subsets;
+}
+
+std::map<std::string, std::string>* DataSet::makeQuery(int index){
+    std::map<std::string, std::string> *query = new std::map<std::string, std::string>();
+    for(int i = 0; i < this->getFeatureCount(); i++){
+        std::pair<std::string, int> feature = this->getFeatureAt(i);
+        query->emplace(feature.first, this->getEntryFeatureAt(index, i));
+    }
+
+    return query;
 }

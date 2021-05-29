@@ -1,9 +1,9 @@
 #ifndef PRUNER_H
 #define PRUNER_H
 
-#include <DataSet.h>
+#include <Dataset/DataSet.h>
 #include <DecisionTree.h>
-#include <StatisticsManager.h>
+#include <Dataset/StatisticsManager.h>
 
 class Pruner
 {

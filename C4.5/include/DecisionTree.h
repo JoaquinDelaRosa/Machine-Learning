@@ -1,11 +1,11 @@
 #ifndef DECISIONTREE_H
 #define DECISIONTREE_H
 
-#include <DataSet.h>
-#include <StatisticsManager.h>
+#include <Dataset/DataSet.h>
+#include <Dataset/StatisticsManager.h>
 #include <bits/stdc++.h>
 #include <Predicate.h>
-#include <Model.h>
+#include <Outputs/Model.h>
 
 class DecisionTree : public Model
 {
@@ -17,16 +17,13 @@ class DecisionTree : public Model
         Predicate predicate;
         StatisticsManager statistics;
 
-        std::vector<DataSet*> partitionDataSet(std::string feature);
-        std::vector<DataSet*> partitionDataSet(int index);
+        std::vector<DecisionTree*> children;
 
         std::pair<std::string, int> findBestFeature();
 
-        std::vector<DecisionTree*> children;
 
         std::pair<double, int> getInformationGain(std::string feature, double h);
         std::pair<double, int>getWeightedVariance(std::string feature);
-        std::map<std::string, std::string>* makeTestData(int index, DataSet* dataset);
 
         // Base cases
         bool isTargetUniform();
