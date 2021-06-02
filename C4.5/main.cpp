@@ -1,11 +1,11 @@
 #include <bits/stdc++.h>
-#include <DataSet.h>
+#include <Dataset/DataSet.h>
 
 #include <DecisionTree.h>
-#include <Validator.h>
+#include <Outputs/Validator.h>
 #include <Pruner.h>
 #include <Printer.h>
-#include <DataParser.h>
+#include <Dataset/DataParser.h>
 
 // TIme taken: approx. 24 hrs
 
@@ -19,7 +19,7 @@ int main()
     DataSet* v = parser->parseData("validationdata.txt", "features.txt");
     Pruner* pruner = new Pruner();
 
-    DecisionTree* decisionTree = new DecisionTree(d, "DECISION");
+    DecisionTree* decisionTree = new DecisionTree(d, "GENDER");
     decisionTree->grow();
     printer->printTree(decisionTree);
 

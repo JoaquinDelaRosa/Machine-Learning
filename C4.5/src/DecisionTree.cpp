@@ -351,16 +351,16 @@ double DecisionTree::test(DataSet* testData){
     double error = 0;
     int total = testData->getEntryCount();
     for(int i = 0; i < total; i++){
-        std::map<std::string, std::string>* query = this->dataset->makeQuery(i);
+        std::map<std::string, std::string>* query = testData->makeQuery(i);
         std::string evaluation = this->evaluate(*query);
         std::string testValue = testData->getEntryFeatureAt(i, targetFeature);
         // For categorical data
-        if(dataset->isFeatureCategorical(targetFeature) &&  testValue != evaluation){
+        if(testData->isFeatureCategorical(targetFeature) &&  testValue != evaluation){
             wrong++;
         }
 
         // For numerical data
-        if(!dataset->isFeatureCategorical(targetFeature)){
+        if(!testData->isFeatureCategorical(targetFeature)){
             double val = stod(testValue);
             double e = stod(evaluation);
             error += (val - e) * (val - e);
