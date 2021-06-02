@@ -1,0 +1,6 @@
+Version 1.0
+Added: 
+* Nearest Neighbor class as a means to conduct similarity based learning
+* Implemented kd trees to optimize distance search for queries.
+* Implemented querying of nearest neighbor
+* Implemented basic metrics for distance (Levenshetein and Euclidean).
