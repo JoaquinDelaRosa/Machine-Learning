@@ -53,3 +53,4 @@ double Metric::levenshtein(std::string a, std::string b){
 
     return table[a.size() - 1][b.size() -1];
 }
+

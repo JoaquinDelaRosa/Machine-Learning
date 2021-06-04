@@ -9,6 +9,7 @@ class KDTree
 {
     private:
         std::string feature;
+        std::string target;
         int label;
         DataSet* entry;
 
@@ -39,6 +40,7 @@ class KDTree
         int getLabel();
 
         DataSet* getEntries();
+        double getDistance(std::map<std::string, std::string> query);
 };
 
 #endif // KDTREE_H

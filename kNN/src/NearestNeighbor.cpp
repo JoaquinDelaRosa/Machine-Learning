@@ -44,24 +44,6 @@ void NearestNeighbor::grow(DataSet* trainingdata){
 
 }
 
-double getDistance(std::map<std::string, std::string> query, DataSet* entry){
-    double dist = 0;
-    Metric* m = new Metric();
-    if(entry == nullptr)
-        return 0;
-
-    for(int i = 0; i < entry->getFeatureCount(); i++){
-        if(entry->getFeatureAt(i).second == DataSet::Categorical)
-            dist += m->levenshtein(query[entry->getFeatureAt(i).first], entry->getEntryFeatureAt(0, i));
-        else{
-            double temp = m->squareEuclidean(query[entry->getFeatureAt(i).first], entry->getEntryFeatureAt(0, i));
-            dist += temp * temp;
-        }
-    }
-
-    return dist;
-}
-
 std::string NearestNeighbor::getWeightedResult(std::map<std::string, std::string> query){
     if(dataset->isFeatureCategorical(target)){
         std::map<std::string, double> modal;
@@ -73,7 +55,7 @@ std::string NearestNeighbor::getWeightedResult(std::map<std::string, std::string
             std::string label = answer->getEntries()->getEntryFeatureAt(answer->getLabel(), target);
             std::map<std::string, double>::iterator it = modal.find(label);
 
-            double distance = getDistance(query, answer->getEntries()) + EPSILON;
+            double distance = answer->getDistance(query) + EPSILON;
 
             if(it != modal.end()){
                 it->second+= 1.0 / distance;
@@ -107,8 +89,7 @@ std::string NearestNeighbor::getWeightedResult(std::map<std::string, std::string
                 continue;
 
             // Get distance from the query
-            double weight = getDistance(query, answer->getEntries()) + EPSILON;
-            answer->getEntries()->printEntries();
+            double weight = answer->getDistance(query) + EPSILON;
             std::string label = answer->getEntries()->getEntryFeatureAt(answer->getLabel(), target);
             result += converter->toDouble(label) / (weight);
             total += 1.0 / weight;

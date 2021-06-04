@@ -22,13 +22,12 @@ KDTree::KDTree()
 void KDTree::growHelper(DataSet* d, std::string target, int index){
     // Each leaf only has some threshold.
     this->entry = new DataSet(*d);
+    this->target = target;
 
     if(d->getEntryCount() <= 1){
         this->label = 0;
         this->type = d->getFeatureAt(d->getFeatureIndex(target)).second;
         this->feature = target;
-        this->bounds.first = d->getEntryFeatureAt(0, target);
-        this->bounds.second = d->getEntryFeatureAt(0, target);
         return;
     }
 
@@ -61,23 +60,34 @@ void KDTree::growHelper(DataSet* d, std::string target, int index){
         }
     }
     this->label = N/2;
-    this->bounds.first = d->getEntryFeatureAt(0, this->feature);
-    this->bounds.second = d->getEntryFeatureAt(N - 1, this->feature);
+
+    if(this->parent == nullptr){
+        this->bounds.first = d->getEntryFeatureAt(0, this->feature);
+        this->bounds.second = d->getEntryFeatureAt(N - 1, this->feature);
+    }
 
     // Grow Children
     index = (index + 1) % d->getFeatureCount();
+    left->bounds.first = d->getEntryFeatureAt(0, this->feature);
+    left->bounds.second = d->getEntryFeatureAt(N/2 - 1, this->feature);
+    right->bounds.first = d->getEntryFeatureAt(N/2 + 1, this->feature);
+    right->bounds.second = d->getEntryFeatureAt(N - 1, this->feature);
+
+
     left->growHelper(l, target, index);
     right->growHelper(r, target, index);
 }
 
 
 void KDTree::grow(DataSet* d, std::string target){
+    this->target = target;
     growHelper(d, target, 0);
 }
 
 KDTree* KDTree::traverse(std::map<std::string, std::string> query){
-    if(this->left == nullptr || this->right == nullptr){
+    if(this->left == nullptr && this->right == nullptr){
         if(this->visited == false && this->marked == false){
+            this->visited = true;
             return this;
         }
     }
@@ -103,14 +113,16 @@ KDTree* KDTree::traverse(std::map<std::string, std::string> query){
             if(! this->left->visited && ! this->left->marked)
                 return this->left->traverse(query);
         }
-        else if(stod(entry) >= stod(l) && this->right != nullptr){
+        else if(stod(entry) > stod(l) && this->right != nullptr){
             if(! this->right->visited && ! this->right->marked)
                 return this->right->traverse(query);
         }
     }
 
-    if(! this->marked && ! this->visited)
+    if(! this->marked && ! this->visited){
+        this->visited = true;
         return this;
+    }
     return nullptr;
 }
 
@@ -136,10 +148,8 @@ void KDTree::unmarkChildren(){
     }
 }
 
-
 KDTree* KDTree::query(std::map<std::string, std::string> query){
     double best = -1;
-    std::string answer = "";
 
 
     // Descend
@@ -148,37 +158,32 @@ KDTree* KDTree::query(std::map<std::string, std::string> query){
     Metric* metric = new Metric();
 
     while(node != nullptr){
-        if(node->marked || node->visited)
-            break;
-        curr = node;
         double distance;
         double boundary;
 
-        std::string l = node->entry->getEntryFeatureAt(label, feature);
-
         if(node->type == (int) DataSet::Categorical){
-            distance = metric->levenshtein(l , query[node->feature]);
-            boundary = metric->levenshtein(node->bounds.first, node->bounds.second);
+            boundary = std::min(metric->levenshtein(node->bounds.first , query[node->feature]),
+                                metric->levenshtein(node->bounds.second , query[node->feature]));
         }
         else{
-            distance = metric->euclidean(l , query[node->feature]);
-            boundary = std::max(metric->euclidean(node->bounds.first, query[node->feature]),
-                                metric->euclidean(node->bounds.second, query[node->feature])
-                        );
+            boundary = std::min(metric->euclidean(node->bounds.first , query[node->feature]),
+                                metric->euclidean(node->bounds.second , query[node->feature]));
         }
 
-        node->visited = true;
+        distance = sqrt(node->getDistance(query));
+
         if(best == -1 || distance < best){
-            answer = l;
             best = distance;
+            curr = node;
         }
 
-        if(boundary < best || node->parent == nullptr){
+        // Hyperplane testing. Check if there are possibly other neighbors.
+        if(boundary < best && boundary >= 0){
             node = node->traverse(query);
         }
 
         else{
-            node = node->parent->traverse(query);
+            node = node->parent;
         }
     }
     // Mark the current node
@@ -193,4 +198,25 @@ int KDTree::getLabel(){
 
 DataSet* KDTree::getEntries(){
     return this->entry;
+}
+
+double KDTree::getDistance(std::map<std::string, std::string> query){
+    double dist = 0;
+    Metric* m = new Metric();
+    if(this->entry == nullptr)
+        return 0;
+
+    for(int i = 0; i < entry->getFeatureCount(); i++){
+        if(entry->getFeatureAt(i).first == target)
+            continue;
+
+        if(entry->getFeatureAt(i).second == DataSet::Categorical)
+            dist += m->levenshtein(query[entry->getFeatureAt(i).first], entry->getEntryFeatureAt(label, i));
+        else{
+            double temp = m->squareEuclidean(query[entry->getFeatureAt(i).first], entry->getEntryFeatureAt(label, i));
+            dist += temp * temp;
+        }
+    }
+
+    return dist;
 }
