@@ -1,8 +1,10 @@
-#include "DecisionTree.h"
-#include "Dataset/StatisticsManager.h"
+#include "../include/DecisionTree.h"
+#include "../../../Shared/include/DataSet/StatisticsManager.h"
+#include "../../../Shared/include/Outputs/Model.h"
 #include "bits/stdc++.h"
-#include "Predicate.h"
-#include "Outputs/Model.h"
+#include "../../../Shared/include/DataSet/Converter.h"
+
+Converter* converter = new Converter();
 
 DecisionTree::DecisionTree(DataSet* dataset, std::string targetFeature, DecisionTree* parent) : Model(){
     this->dataset = dataset;
@@ -223,7 +225,7 @@ std::string DecisionTree::getMajorityTargetFeature(){
     if(dataset->isFeatureCategorical(targetFeature))
         majority = this->statistics.getMode(this->dataset, this->targetFeature);
     else
-        majority = std::to_string(statistics.getMean(this->dataset, targetFeature));
+        majority = converter->toString(statistics.getMean(this->dataset, targetFeature));
 
     return majority;
 }
@@ -233,7 +235,7 @@ bool DecisionTree::isPrunable(){
         return false;
 
     // Prune when 5% of the data remains.
-    if(this->dataset->getEntryCount() < 25)
+    if(this->dataset->getEntryCount() < 3)
         return true;
 
     return false;
@@ -244,14 +246,14 @@ void DecisionTree::grow(){
         if(this->parent == nullptr){
             return;
         }
-        label = this->getMajorityTargetFeature();;
+        label = this->parent->getMajorityTargetFeature();
         return;
     }
 
     if(!this->dataset->isFeatureCategorical(targetFeature)){
         // Stop when the pruning condition is met.
         if(this->isPrunable()){
-            label = statistics.getMean(dataset, targetFeature);
+            label = this->getMajorityTargetFeature();
             return;
         }
     }
@@ -280,10 +282,12 @@ void DecisionTree::grow(){
 
     if(dataset->isFeatureCategorical(best.first))
         p = this->dataset->partitionDataSet(best.first);
-    else{
+    else if(best.second != -1){
         dataset->sortByFeature(best.first);
         p = this->dataset->partitionDataSet(best.second);
     }
+    else
+        return;
 
 
    // Make children and grow them
@@ -297,7 +301,8 @@ void DecisionTree::grow(){
         }
         else{
             predicateLabel = std::to_string(
-                (stod(dataset->getEntryFeatureAt(best.second - 1, best.first)) + stod(dataset->getEntryFeatureAt(best.second, best.first))) / (2.0)
+                (converter->toDouble(dataset->getEntryFeatureAt(best.second - 1, best.first)) +
+                 converter->toDouble(dataset->getEntryFeatureAt(best.second, best.first))) / (2.0)
             );
 
             if(children.size() == 0)
@@ -361,8 +366,8 @@ double DecisionTree::test(DataSet* testData){
 
         // For numerical data
         if(!testData->isFeatureCategorical(targetFeature)){
-            double val = stod(testValue);
-            double e = stod(evaluation);
+            double val = converter->toDouble(testValue);
+            double e = converter->toDouble(evaluation);
             error += (val - e) * (val - e);
         }
         delete(query);

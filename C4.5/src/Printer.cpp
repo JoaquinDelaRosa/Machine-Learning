@@ -1,5 +1,5 @@
-#include "Printer.h"
-#include "DecisionTree.h"
+#include "../include/Printer.h"
+#include "../include/DecisionTree.h"
 
 Printer::Printer()
 {

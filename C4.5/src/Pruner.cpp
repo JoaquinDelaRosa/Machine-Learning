@@ -1,8 +1,8 @@
-#include "Pruner.h"
-#include "Dataset/DataSet.h"
-#include "DecisionTree.h"
-#include "Dataset/StatisticsManager.h"
-#include "Outputs/Validator.h"
+#include "../include/Pruner.h"
+#include "../../../Shared/include/DataSet/DataSet.h"
+#include "../include/DecisionTree.h"
+#include "../../../Shared/include/DataSet/StatisticsManager.h"
+#include "../../../Shared/include/Outputs/Validator.h"
 
 #define INFINITESIMAL 1e-15
 
