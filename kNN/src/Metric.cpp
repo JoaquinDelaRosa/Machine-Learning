@@ -1,13 +1,31 @@
 #include "Metric.h"
 #include "bits/stdc++.h"
+#include "../../../Shared/include/DataSet/Converter.h"
+extern Converter* converter;
 
 Metric::Metric()
 {
     //ctor
 }
 
-double Metric::euclidean(double a, double b){
-    return sqrt(a * a + b * b);
+double Metric::euclidean(std::string a, std::string b){
+    if(a == "" || b== "")
+        return -1;
+
+    double A = converter->toDouble(a);
+    double B = converter->toDouble(b);
+
+    return sqrt(A * A + B * B);
+}
+
+double Metric::squareEuclidean(std::string a, std::string b){
+    if(a == "" || b== "")
+        return 0;
+
+    double A = converter->toDouble(a);
+    double B = converter->toDouble(b);
+
+    return A - B;
 }
 
 double Metric::levenshtein(std::string a, std::string b){

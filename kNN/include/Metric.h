@@ -8,8 +8,9 @@ class Metric
     public:
         Metric();
 
-        double euclidean(double a, double b);
+        double euclidean(std::string a, std::string b);
         double levenshtein(std::string a, std::string b);
+        double squareEuclidean(std::string a, std::string b);
 };
 
 #endif // METRIC_H
