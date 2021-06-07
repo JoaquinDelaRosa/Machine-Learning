@@ -1,0 +1,4 @@
+Naive Bayes
+
+Version 1.0
+* Added Naive Bayes, a probability-based categorizing algorithm (cannot be extended for regression purposes)
