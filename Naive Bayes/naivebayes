@@ -1,0 +1,5 @@
+Naive Bayes
+
+Version 1.0
+* Uploaded the Naive Bayes Classification Algorithm which classifies based on probability under the inductive bias of conditional independence 
+(cannot be extended to Regression).
