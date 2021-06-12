@@ -443,9 +443,6 @@ double DecisionTree::getImpurity(){
 }
 
 double DecisionTree::getMisclassificationRate(){
-    if (this->misclassificationRate >= 0)
-        return this->misclassificationRate;
-
     // Let r be the misclassification estimate (equal to 1 - p(label))
     double r = 1 - ((1.0 * statistics.getFrequency(dataset, targetFeature, this->getMajorityTargetFeature())) / this->dataset->getEntryCount());
     // Let p be the posterior probability estimate. In this case we use N(t) / N, for N(t) being the size of this node;

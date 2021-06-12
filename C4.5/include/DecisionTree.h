@@ -1,11 +1,11 @@
 #ifndef DECISIONTREE_H
 #define DECISIONTREE_H
 
-#include <Dataset/DataSet.h>
-#include <Dataset/StatisticsManager.h>
+#include <../../../Shared/include/DataSet/DataSet.h>
+#include <../../../Shared/include/DataSet/StatisticsManager.h>
 #include <bits/stdc++.h>
-#include <Predicate.h>
-#include <Outputs/Model.h>
+#include<Predicate.h>
+#include <../../../Shared/include/Outputs/Model.h>
 
 class DecisionTree : public Model
 {
