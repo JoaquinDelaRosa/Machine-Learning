@@ -1,0 +1,6 @@
+Multilinear Regression
+
+Version 1.0
+
+Added Multilinear Regression, a regression algorithm that utilizes gradient
+descent to construct a weights vector used as a predictive model for a dataset.
